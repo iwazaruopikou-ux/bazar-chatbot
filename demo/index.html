@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>資料請求チャットボット デモ</title>
+<link rel="stylesheet" href="../chatbot/chatbot.css">
+<style>
+  :root { --bg: #f4f1ec; --card: #fff; --text: #333; --line: #ddd; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: "Hiragino Kaku Gothic ProN", Meiryo, sans-serif; font-size: 14px; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 20px; margin: 8px 0; }
+  .demo-note { background: #fffbe0; border: 1px solid #e8d36b; padding: 10px 14px; border-radius: 6px; margin-bottom: 14px; line-height: 1.7; }
+  .search { background: var(--card); border: 1px solid var(--line); padding: 14px; border-radius: 6px; }
+  .search select { font-size: 15px; padding: 4px; margin-right: 8px; }
+  iframe { width: 100%; height: 2000px; border: 1px solid var(--line); background: #fff; margin-top: 14px; display: block; }
+  #result { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 2147483600; padding: 16px; }
+  #result .box { max-width: 640px; margin: 5vh auto; background: #fff; border-radius: 8px; padding: 16px; max-height: 85vh; overflow: auto; }
+  #result pre { white-space: pre-wrap; font-size: 12px; background: #f7f7f7; padding: 10px; border-radius: 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="demo-note">
+    <b>デモページです。</b>本物の「工務店へ資料請求」ページ（quotes_search_simple.php）の作りをまねています。<br>
+    右下のチャットで答えていくと、下にある元のフォームが自動で埋まっていきます。最後のボタンで、本来送信される内容が表示されます（実際には送信されません）。
+  </p>
+  <h1>建築予定地やご希望の地域の工務店へ一括資料請求</h1>
+
+  <!-- 本物のページと同じ地域選択フォーム -->
+  <div class="search">
+    <form name="form1" action="form.html" method="get" target="sendform">
+      <select name="province" id="province_loc_id">
+        <option value="">選択してください。</option>
+      </select>
+      <select name="quotes[city]" id="const_location_city">
+        <option value="">選択してください</option>
+      </select>
+      <input type="submit" name="send_quotes" value="資料請求する">
+    </form>
+  </div>
+
+  <!-- 本物のページと同じく、元のフォームはこの iframe に表示される -->
+  <iframe id="sendform" name="sendform" src="form.html"></iframe>
+</div>
+
+<div id="result"><div class="box">
+  <b>本来ならこの内容が送信されます</b>
+  <pre></pre>
+  <button type="button" onclick="document.getElementById('result').style.display='none'">閉じる</button>
+</div></div>
+
+<script>
+// ---- デモ用：都道府県を選ぶと市区町村の一覧が入れ替わる動き（本物のページのまね） ----
+var PREFS = ['北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県','茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県','新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県','三重県','滋賀県','京都府','大阪府','兵庫県','奈良県','和歌山県','鳥取県','島根県','岡山県','広島県','山口県','徳島県','香川県','愛媛県','高知県','福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県'];
+var CITIES = {
+  1: ['札幌市中央区', '札幌市北区', '函館市', '旭川市', '小樽市'],
+  12: ['千葉市中央区', '市原市', '船橋市', '柏市', '木更津市'],
+  13: ['千代田区', '世田谷区', '練馬区', '八王子市', '町田市'],
+  14: ['横浜市中区', '川崎市中原区', '相模原市緑区', '藤沢市', '鎌倉市'],
+  27: ['大阪市北区', '堺市堺区', '豊中市', '吹田市', '枚方市']
+};
+var pref = document.getElementById('province_loc_id');
+var city = document.getElementById('const_location_city');
+PREFS.forEach(function (p, i) { pref.add(new Option(p, i + 1)); });
+pref.addEventListener('change', function () {
+  var list = CITIES[pref.value] || [PREFS[pref.value - 1].replace(/[都道府県]$/, '') + '市（デモ）', 'その他の市町村（デモ）'];
+  // 本物のページは通信で一覧を取ってくるので、少し待ってから入れ替える
+  setTimeout(function () {
+    city.innerHTML = '<option value="">選択してください</option>';
+    list.forEach(function (c, i) { city.add(new Option(c, pref.value * 100 + i + 1)); });
+  }, 300);
+});
+window.showDemoResult = function (text) {
+  var r = document.getElementById('result');
+  r.querySelector('pre').textContent = text;
+  r.style.display = 'block';
+};
+</script>
+
+<!-- ▼ 本番ページにはこの2行を追加するだけ ▼ -->
+<script src="../chatbot/chatbot.js"></script>
+</body>
+</html>

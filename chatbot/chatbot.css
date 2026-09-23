@@ -1,0 +1,82 @@
+/* ハウジングバザール 一括資料請求チャットボット */
+.hbc-launcher, .hbc-window, .hbc-window * { box-sizing: border-box; }
+.hbc-launcher, .hbc-window { font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif; font-size: 14px; line-height: 1.6; color: #333; }
+
+/* 右下の呼び出しボタン */
+.hbc-launcher {
+  position: fixed; right: 16px; bottom: 16px; z-index: 2147483000;
+  display: flex; align-items: center; gap: 8px; padding: 8px 18px 8px 8px;
+  background: #e8731e; color: #fff; border: 0; border-radius: 40px; cursor: pointer;
+  font-weight: bold; font-size: 15px; box-shadow: 0 4px 14px rgba(0,0,0,.25);
+}
+.hbc-launcher img { width: 44px; height: 44px; border-radius: 50%; background: #fff; }
+.hbc-launcher:hover { background: #d4620f; }
+.hbc-hidden { display: none; }
+
+/* チャット画面 */
+.hbc-window {
+  position: fixed; right: 10px; bottom: 0; z-index: 2147483001;
+  width: 400px; height: 600px; max-height: 100vh;
+  display: none; flex-direction: column; background: #fdf8f2;
+  border-radius: 10px 10px 0 0; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,.3);
+}
+.hbc-window.hbc-open { display: flex; }
+.hbc-header { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #e8731e; color: #fff; }
+.hbc-header img { width: 40px; height: 40px; border-radius: 50%; background: #fff; }
+.hbc-title { flex: 1; font-weight: bold; font-size: 16px; }
+.hbc-close { background: none; border: 0; color: #fff; font-size: 26px; line-height: 1; cursor: pointer; padding: 0 4px; }
+
+.hbc-progress { position: relative; height: 22px; background: #f6dcc4; }
+.hbc-progress-bar { height: 100%; background: #f5a45d; transition: width .3s; }
+.hbc-progress-label { position: absolute; inset: 0; text-align: center; font-size: 12px; font-weight: bold; line-height: 22px; color: #7a3b08; }
+
+.hbc-body { flex: 1; overflow-y: auto; padding: 14px 10px 30px; -webkit-overflow-scrolling: touch; }
+
+/* 吹き出し */
+.hbc-row { display: flex; margin-bottom: 12px; animation: hbc-in .3s ease; }
+.hbc-left { justify-content: flex-start; align-items: flex-start; }
+.hbc-right { justify-content: flex-end; }
+.hbc-icon { width: 42px; height: 42px; border-radius: 50%; margin-right: 8px; flex-shrink: 0; background: #fff; }
+.hbc-balloon { max-width: 80%; padding: 10px 14px; border-radius: 14px; background: #fff; border: 1px solid #eadfd3; word-break: break-word; }
+.hbc-left .hbc-balloon { border-top-left-radius: 2px; }
+.hbc-answer { background: #fff3e6; border-color: #f5c89d; border-top-right-radius: 2px; }
+.hbc-sum-label { display: block; font-size: 11px; color: #999; }
+.hbc-edit { display: block; margin: 6px 0 0 auto; background: none; border: 0; color: #e8731e; font-size: 12px; text-decoration: underline; cursor: pointer; padding: 0; }
+.hbc-red { color: #e60012; font-weight: bold; }
+@keyframes hbc-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* 入力カード */
+.hbc-card { width: 92%; padding: 12px; background: #fff; border: 2px solid #f5a45d; border-radius: 12px; }
+.hbc-grid { display: flex; flex-wrap: wrap; gap: 0 4%; }
+.hbc-field { width: 100%; margin-bottom: 10px; }
+.hbc-half { width: 48%; }
+.hbc-tel { width: 30.66%; }
+.hbc-label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 3px; }
+.hbc-req { display: inline-block; padding: 0 5px; margin-left: 4px; font-size: 10px; color: #fff; background: #e60012; border-radius: 3px; vertical-align: 1px; }
+.hbc-input { width: 100%; padding: 8px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; background: #fff; font-family: inherit; }
+.hbc-input:focus { outline: 2px solid #f5a45d; border-color: #f5a45d; }
+.hbc-note { font-size: 11px; color: #777; margin-top: 3px; }
+.hbc-error { font-size: 12px; color: #e60012; min-height: 0; }
+.hbc-error:not(:empty) { margin-top: 3px; }
+
+.hbc-options { display: flex; flex-direction: column; gap: 6px; }
+.hbc-radio { flex-direction: row; flex-wrap: wrap; }
+.hbc-option { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 13px; background: #fff; }
+.hbc-radio .hbc-option { flex: 1 1 auto; }
+.hbc-option input { margin: 0; flex-shrink: 0; accent-color: #e8731e; width: 16px; height: 16px; }
+.hbc-option.hbc-on { border-color: #e8731e; background: #fff3e6; }
+.hbc-terms { max-height: 110px; overflow-y: auto; padding: 8px; margin-bottom: 6px; font-size: 11px; background: #f7f7f7; border: 1px solid #ddd; border-radius: 6px; }
+
+.hbc-buttons { text-align: center; margin-top: 4px; }
+.hbc-next { min-width: 60%; padding: 10px 20px; font-size: 16px; font-weight: bold; color: #fff; background: #e8731e; border: 0; border-radius: 30px; cursor: pointer; font-family: inherit; }
+.hbc-next:hover { background: #d4620f; }
+.hbc-next:disabled { background: #ccc; cursor: default; }
+.hbc-submit { width: 100%; background: #e60012; }
+.hbc-submit:hover { background: #c4000f; }
+
+/* スマートフォン：全画面表示 */
+@media (max-width: 600px) {
+  .hbc-window { right: 0; left: 0; top: 0; width: 100%; height: 100%; max-height: none; border-radius: 0; }
+  .hbc-launcher { right: 10px; bottom: 10px; }
+  .hbc-card { width: 100%; }
+}

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8">
+<title>元の資料請求フォーム（デモ用コピー）</title>
+<style>
+body{font-family:"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;font-size:14px;margin:0;padding:16px;background:#fff;color:#333}
+h2{font-size:18px;border-left:6px solid #e8731e;padding-left:8px}
+h3{font-size:16px;margin:24px 0 8px}
+.table_form{width:100%;border-collapse:collapse;margin-bottom:12px}
+.table_form th,.table_form td{border:1px solid #ddd;padding:8px;vertical-align:top;text-align:left}
+.table_form th{background:#fdf1e5;width:28%}
+.form_ul{list-style:none;margin:0;padding:0}.form_ul li{display:inline-block;margin-right:12px}
+.tf{width:140px}.ta{width:95%;height:70px}
+.req{float:right;font-size:10px;color:#fff;background:#e60012;padding:0 4px;border-radius:3px}
+.bt_wrap{text-align:center;margin:20px}.bt{font-size:16px;padding:10px 30px}
+.demo-note{background:#fffbe0;border:1px solid #e8d36b;padding:8px 12px;border-radius:6px}
+</style></head><body>
+<p class="demo-note">↓ これは quotes_send2.php の資料請求フォームをそのままコピーしたものです（デモ用。実際には送信されません）。<br>チャットボットで答えると、この欄が自動で埋まっていきます。</p>
+<h2>無料資料請求</h2>
+<form id="demo-form" action="#" method="post" target="_top">
+<p>資料請求をご希望の方は、チェックをして下さい。</p>
+<table border="0" cellpadding="0" cellspacing="0" class="table_form">
+                    <tbody><tr>
+                        <th valign="top">資料請求 <span class="req">必須</span></th>
+                        <td>
+                                                        <ul class="form_ul"><li><label><input name="contact[brochure][]" value="パンフレットや資料　（特長やこだわり、商品等）" type="checkbox" class="">&nbsp;パンフレットや資料　（特長やこだわり、商品等）</label></li><li><label><input name="contact[brochure][]" value="ショールーム・見学会・イベント等の情報が欲しい" type="checkbox" class="">&nbsp;ショールーム・見学会・イベント等の情報が欲しい</label></li><li><label><input name="contact[brochure][]" value="建築例の資料が見たい　（パンフレット・リーフレット・チラシ等）" type="checkbox" class="">&nbsp;建築例の資料が見たい　（パンフレット・リーフレット・チラシ等）</label></li><li><label><input name="contact[brochure][]" value="家づくりの進め方の分かる資料が欲しい　（パンフレット・リーフレット・チラシ等）" type="checkbox" class="">&nbsp;家づくりの進め方の分かる資料が欲しい　（パンフレット・リーフレット・チラシ等）</label></li></ul><br>
+                            その他 （上記の他にお求めの資料があれば、詳しいご希望をご入力下さい。）<br>
+                            （例）二世帯住宅のカタログがほしい。<br>
+                            省エネ住宅についての資料を下さい。
+                            <textarea name="contact[brochure_other]" class="ta"></textarea>                        </td>
+                    </tr>
+                </tbody></table>
+
+                <table border="0" cellpadding="0" cellspacing="0" class="table_form">
+                    <tbody><tr>
+                        <th valign="top">お名前 <span class="req">必須</span></th>
+                        <td colspan="3">
+                            &nbsp;&nbsp;&nbsp;&nbsp;姓<input type="text" name="contact[name]" value="" class="tf req">&nbsp;名<input type="text" name="contact[name2]" value="" class="tf req">(全角)<br>
+                            <span id="contactname_error" class="error_text"></span><span id="contactname2_error" class="error_text"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th valign="top">フリガナ <span class="req">必須</span></th>
+                        <td colspan="3">
+                            &nbsp;セイ<input type="text" name="contact[name_read]" value="" class="tf req">&nbsp;メイ<input type="text" name="contact[name_read2]" value="" class="tf req">(全角カナ)<br>
+                            <span id="contactname_read_error" class="error_text"></span><span id="contactname_read2_error" class="error_text"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th valign="top">住所 <span class="req">必須</span></th>
+                        <td colspan="3">
+                                                        郵便番号　（半角数字 ハイフン無し）<br><span style="color:#696969;">（例）2900056</span><br><input type="text" name="contact[zip]" value="" class="tf req">                            <span id="contactzip_error" class="error_text"></span>
+                            <br>
+                            都道府県<br>
+                            <select name="contact[addr_province]" class=""><option value="">選択してください。</option><option value="北海道">北海道</option><option value="青森県">青森県</option><option value="岩手県">岩手県</option><option value="宮城県">宮城県</option><option value="秋田県">秋田県</option><option value="山形県">山形県</option><option value="福島県">福島県</option><option value="茨城県">茨城県</option><option value="栃木県">栃木県</option><option value="群馬県">群馬県</option><option value="埼玉県">埼玉県</option><option value="千葉県">千葉県</option><option value="東京都">東京都</option><option value="神奈川県">神奈川県</option><option value="新潟県">新潟県</option><option value="富山県">富山県</option><option value="石川県">石川県</option><option value="福井県">福井県</option><option value="山梨県">山梨県</option><option value="長野県">長野県</option><option value="岐阜県">岐阜県</option><option value="静岡県">静岡県</option><option value="愛知県">愛知県</option><option value="三重県">三重県</option><option value="滋賀県">滋賀県</option><option value="京都府">京都府</option><option value="大阪府">大阪府</option><option value="兵庫県">兵庫県</option><option value="奈良県">奈良県</option><option value="和歌山県">和歌山県</option><option value="鳥取県">鳥取県</option><option value="島根県">島根県</option><option value="岡山県">岡山県</option><option value="広島県">広島県</option><option value="山口県">山口県</option><option value="徳島県">徳島県</option><option value="香川県">香川県</option><option value="愛媛県">愛媛県</option><option value="高知県">高知県</option><option value="福岡県">福岡県</option><option value="佐賀県">佐賀県</option><option value="長崎県">長崎県</option><option value="熊本県">熊本県</option><option value="大分県">大分県</option><option value="宮崎県">宮崎県</option><option value="鹿児島県">鹿児島県</option><option value="沖縄県">沖縄県</option></select><br>
+                            <br>
+                            市区町村（全角） <span style="color:#696969;">（例）市原市</span><br>
+                            <input type="text" name="contact[addr_city]" value="" class="tf req">                            <br>
+                            <span class="tf_address2">その他住所・番地　（全角）</span> <span style="color:#696969;">（例）五井２４３７−２</span><br>
+                            <input type="text" name="contact[address]" value="" class="tf req">                            <br>
+                            <span class="tf_address2">建物名・部屋番号（全角）</span> <span style="color:#696969;">（例）ホマレヤハイツ１０１</span><br>
+                            <span style="color:#0000ff; padding-top:8px;">＊持ち家や戸建て賃貸で部屋番号がない場合は「なし」とご入力下さい。</span><br>
+                            <input type="text" name="contact[address_room]" value="" class="tf">                        </td>
+                    </tr>
+                    <tr>
+                        <th valign="top">TEL <span class="req">必須</span></th>
+                        <td colspan="3">
+                                                        <input type="text" name="contact[tel1]" value="" class="tf req">-<input type="text" name="contact[tel2]" value="" class="tf req">-<input type="text" name="contact[tel3]" value="" class="tf req">（半角数字）
+                            <span id="contacttel1_error" class="error_text"></span><span id="contacttel2_error" class="error_text"></span><span id="contacttel3_error" class="error_text"></span>
+
+                        </td>
+                    </tr>
+
+                                            <tr>
+                            <th valign="top">Emailアドレス <span class="req">必須</span></th>
+                            <td colspan="3" class="tf_col3">
+                                                                <input type="text" name="contact[email]" value="" class="tf req"> (半角英数字／携帯メールアドレス可)
+                                <span id="contactemail_error" class="error_text"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th valign="top">Emailアドレス <span class="req">必須</span><br>(再入力)</th>
+                            <td colspan="3" class="tf_col3">
+                                                                <input type="text" name="contact[reemail]" value="" class="tf req">                            </td>
+                        </tr>
+                    
+                    <tr>
+                        <th valign="top">勤務先</th>
+                        <td colspan="3"><input type="text" name="contact[work_location]" value="" class="tf">（全角）
+                        </td>
+                    </tr>
+                    <tr>
+                        <th valign="top">年齢 <span class="req">必須</span></th>
+                        <td>
+                                                        <input type="text" name="contact[age]" value="" class="tf req">才　(半角数字)<br>
+                            <span id="contactage_error" class="error_text"></span>
+                        </td>
+                        <th valign="top">住む予定の家族人数<span class="req">必須</span><br>（将来の予定含む）</th>
+                        <td>
+                                                        <select name="contact[family]" class=""><option value="">選択してください。</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select>人　(半角数字)
+                        </td>
+                    </tr>
+                    <tr class="familyAdditional" style="display:none">
+                        <th valign="top">建築後のご利用用途をお知らせ下さい <span class="req">必須</span>
+                        </th>
+                        <td colspan="3">
+                                                        <ul class="form_ul"><li><label><input type="radio" name="contact[const_use]" value="別荘として使用" class=""> 別荘として使用</label></li><li><label><input type="radio" name="contact[const_use]" value="自宅として入居" class=""> 自宅として入居</label></li><li><label><input type="radio" name="contact[const_use]" value="投資・資産運用の為" class=""> 投資・資産運用の為</label></li><li><label><input type="radio" name="contact[const_use]" value="その他" class=""> その他</label></li></ul>                            <input type="text" name="contact[const_use_etc]" value="" class="tf">                        </td>
+                    </tr>
+                    <tr>
+                        <th valign="top">現在のお住まい <span class="req">必須</span></th>
+                        <td colspan="3">
+                                                        <ul class="form_ul"><li><label><input type="radio" name="contact[const_status]" value="持ち家（本人名義）" class=""> 持ち家（本人名義）</label></li><li><label><input type="radio" name="contact[const_status]" value="持ち家（親名義）" class=""> 持ち家（親名義）</label></li><li><label><input type="radio" name="contact[const_status]" value="マンション" class=""> マンション</label></li><li><label><input type="radio" name="contact[const_status]" value="賃貸" class=""> 賃貸</label></li><li><label><input type="radio" name="contact[const_status]" value="その他" class=""> その他</label></li></ul>    <input type="text" name="contact[house_type]" value="" class="tf">                        </td>
+                    </tr>
+                    <tr class="houseHolder" style="display:none">
+                        <th valign="top">
+                            <div style="display:none">築年数 <span class="req">必須</span>
+                            </div>
+                        </th>
+                        <td colspan="3">
+                            <div style="display:none">
+                                                                <span style="color:#0000ff;">当サイトでは築年数が10年以内の場合、家の法定長期保証の関係上、現在の家を建てた業者さん以外でのリフォームや増築をおすすめしておりません。</span>
+                                <ul class="form_ul"><li><label><input type="radio" name="contact[build_year]" value="10～15年" class=""> 10～15年</label></li><li><label><input type="radio" name="contact[build_year]" value="15～20年" class=""> 15～20年</label></li><li><label><input type="radio" name="contact[build_year]" value="20～25年" class=""> 20～25年</label></li><li><label><input type="radio" name="contact[build_year]" value="25年以上" class=""> 25年以上</label></li></ul>                            </div>
+                        </td>
+                    </tr>
+                    <tr class="houseHolder" style="display:none">
+                        <th valign="top">
+                            <div style="display:none">建築内容 <span class="req">必須</span>
+                            </div>
+                        </th>
+                        <td colspan="3">
+                            <div style="display:none">
+                                                                <ul class="form_ul"><li><label><input type="radio" name="contact[const_info]" value="建て替え希望" class=""> 建て替え希望</label></li><li><label><input type="radio" name="contact[const_info]" value="別の土地で新築希望" class=""> 別の土地で新築希望</label></li></ul>                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th valign="top">建築予定地 <span class="req">必須</span></th>
+                        <td colspan="3">
+                                                        土地：<label><input type="radio" name="contact[const_location_yes_no]" value="1" class=""> 有り</label>&nbsp;<label><input type="radio" name="contact[const_location_yes_no]" value="2" class=""> 無し</label>&nbsp;                        </td>
+                    </tr>
+                    <tr>
+                        <th valign="top">建築予定時期 <span class="req">必須</span></th>
+                        <td>
+                                                        <ul class="form_ul"><li><label><input type="radio" name="contact[const_start]" value="今すぐ" class=""> 今すぐ</label></li><li><label><input type="radio" name="contact[const_start]" value="半年以内" class=""> 半年以内</label></li><li><label><input type="radio" name="contact[const_start]" value="1年以内" class=""> 1年以内</label></li><li><label><input type="radio" name="contact[const_start]" value="1～2年以内" class=""> 1～2年以内</label></li><li><label><input type="radio" name="contact[const_start]" value="2～3年以内" class=""> 2～3年以内</label></li><li><label><input type="radio" name="contact[const_start]" value="検討中" class=""> 検討中</label></li></ul>                        </td>
+                        <th valign="top">建築予算 <span class="req">必須</span></th>
+                        <td>
+                                                        <ul class="form_ul"><li><label><input type="radio" name="contact[const_budget]" value="1000～2000万円" class=""> 1000～2000万円</label></li><li><label><input type="radio" name="contact[const_budget]" value="2000～3000万円" class=""> 2000～3000万円</label></li><li><label><input type="radio" name="contact[const_budget]" value="3000万円～" class=""> 3000万円～</label></li><li><label><input type="radio" name="contact[const_budget]" value="まだ検討中" class=""> まだ検討中</label></li></ul>                        </td>
+                    </tr>
+                    <tr>
+                        <th valign="top">その他ご要望</th>
+                        <td colspan="3"><textarea name="contact[comment1]" class="ta"></textarea></td>
+                    </tr>
+                </tbody></table>
+
+                <h3>入力情報についてご確認ください</h3>
+                <div class="form_wrap">
+                    <table border="0" cellpadding="0" cellspacing="0" class="table_form">
+                        <tbody><tr>
+                            <th valign="top">当フォーム入力者情報とあなたとのご関係 <span class="req">必須</span></th>
+                            <td>
+                                                                <ul class="form_ul">
+                                    <li><label><input type="radio" name="contact[relation]" value="ご本人">ご本人</label></li>
+                                    <li><label><input type="radio" name="contact[relation]" value="配偶者">配偶者</label></li>
+                                    <li><label><input type="radio" name="contact[relation]" value="ご家族">ご家族</label></li>
+                                    <li><label><input type="radio" name="contact[relation]" value="その他">その他</label>　
+                                        <input type="text" name="contact[relationetc]" value="" class="tf"><div style="float: right; margin-right: 20px; color: rgb(223, 159, 35);">
+                                            ご関係と入力者様のお名前をご記入下さい<br>（例）友人　住宅　太郎</div>
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th valign="top">注意事項 <span class="req">必須</span></th>
+                            <td>
+                                <span class="error_text">※ご記入内容に誤りはございませんか？</span>
+                                                                <textarea class="ta" readonly="readonly">1.お問い合わせにご記入いただいた内容について当サイトよりご確認の連絡を差し上げる場合がありますので、予めご了承ください。
+    2.ご記入いただいた内容に不備がある場合、関係機関を通じて情報の確認や捜索等を行うことがありますので、ご記入内容に誤りがないか今一度ご確認ください。
+    3.同業者及びそれに準ずる方の御利用は固く禁じております。又、故意と思われる内容の錯誤（いたずら等）につきましては、所轄関係機関を通じての情報確認、及び法的手続きを行なう事がございます。</textarea>
+                                <input type="checkbox" name="contact[agree]" value="同意">上記の注意事項を確認しました
+                            </td>
+                        </tr>
+                    </tbody></table>
+                </div>
+
+                
+<div class="bt_wrap"><input type="submit" name="confirm" value="　　入力内容を確認する　　" class="bt"></div>
+</form>
+<script>
+// ---- デモ用：本物のページの動きをまねる部分 ----
+// 家族人数が1人の時に「建築後のご利用用途」を表示（本物の条件は未確認のため仮）
+document.getElementsByName('contact[family]')[0].addEventListener('change', function () {
+  document.querySelector('.familyAdditional').style.display = this.value === '1' ? '' : 'none';
+});
+// 送信の代わりに、送られる内容を表示する
+document.getElementById('demo-form').addEventListener('submit', function (e) {
+  e.preventDefault();
+  var fd = new FormData(this), lines = [];
+  fd.forEach(function (v, k) { if (v !== '') lines.push(k + ' = ' + v); });
+  var area = new URLSearchParams(location.search);
+  (window.top.showDemoResult || alert)('【地域】province=' + area.get('province') + ' / city=' + area.get('quotes[city]') + '\n\n' + lines.join('\n'));
+});
+</script>
+</body></html>
