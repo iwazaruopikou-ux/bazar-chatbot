@@ -190,6 +190,13 @@ h3{font-size:16px;margin:24px 0 8px}
 document.getElementsByName('contact[family]')[0].addEventListener('change', function () {
   document.querySelector('.familyAdditional').style.display = this.value === '1' ? '' : 'none';
 });
+// 現在のお住まいが「持ち家」の時に「築年数」「建築内容」を表示（本物のフォームと同じ動き）
+document.getElementsByName('contact[const_status]').forEach(function (r) {
+  r.addEventListener('change', function () {
+    var own = /^持ち家/.test(this.value);
+    document.querySelectorAll('.houseHolder, .houseHolder div').forEach(function (el) { el.style.display = own ? '' : 'none'; });
+  });
+});
 // 送信の代わりに、送られる内容を表示する
 document.getElementById('demo-form').addEventListener('submit', function (e) {
   e.preventDefault();

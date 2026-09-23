@@ -37,6 +37,7 @@
    *   fields  : 入力欄。name は元のフォームの name 属性と同じにする
    *   type    : checkbox / radio / select / text / textarea / agree / area（地域選択）
    *   showIf  : 表示条件。'visible' なら元のフォームでその項目が表示されている時だけ聞く
+   *   when    : 入力欄ごとの表示条件。{ name: 別の欄の name, in: [値...] } の答えの時だけ表示する
    */
   var STEPS = [
     {
@@ -115,7 +116,8 @@
       bot: ['建築後のご利用用途をお知らせ下さい。'],
       fields: [
         { name: 'contact[const_use]', type: 'radio', required: true, options: ['別荘として使用', '自宅として入居', '投資・資産運用の為', 'その他'] },
-        { name: 'contact[const_use_etc]', type: 'text', label: 'その他の場合はご記入ください' }
+        { name: 'contact[const_use_etc]', type: 'text', label: 'その他の場合はご記入ください',
+          when: { name: 'contact[const_use]', in: ['その他'] } }
       ]
     },
     {
@@ -124,7 +126,15 @@
       fields: [
         { name: 'contact[const_status]', type: 'radio', label: '現在のお住まい', required: true,
           options: ['持ち家（本人名義）', '持ち家（親名義）', 'マンション', '賃貸', 'その他'] },
-        { name: 'contact[house_type]', type: 'text', label: 'その他の場合はご記入ください' },
+        { name: 'contact[house_type]', type: 'text', label: 'その他の場合はご記入ください',
+          when: { name: 'contact[const_status]', in: ['その他'] } },
+        { name: 'contact[build_year]', type: 'radio', label: '築年数', required: true,
+          when: { name: 'contact[const_status]', in: ['持ち家（本人名義）', '持ち家（親名義）'] },
+          note: '当サイトでは築年数が10年以内の場合、家の法定長期保証の関係上、現在の家を建てた業者さん以外でのリフォームや増築をおすすめしておりません。',
+          options: ['10～15年', '15～20年', '20～25年', '25年以上'] },
+        { name: 'contact[const_info]', type: 'radio', label: '建築内容', required: true,
+          when: { name: 'contact[const_status]', in: ['持ち家（本人名義）', '持ち家（親名義）'] },
+          options: ['建て替え希望', '別の土地で新築希望'] },
         { name: 'contact[const_location_yes_no]', type: 'radio', label: '建築予定地（土地）', required: true,
           options: [{ value: '1', text: '有り' }, { value: '2', text: '無し' }] },
         { name: 'contact[const_start]', type: 'radio', label: '建築予定時期', required: true,
@@ -139,7 +149,8 @@
       fields: [
         { name: 'contact[relation]', type: 'radio', label: '当フォーム入力者情報とあなたとのご関係', required: true,
           options: ['ご本人', '配偶者', 'ご家族', 'その他'] },
-        { name: 'contact[relationetc]', type: 'text', label: 'その他の場合：ご関係と入力者様のお名前', placeholder: '友人　住宅　太郎' },
+        { name: 'contact[relationetc]', type: 'text', label: 'ご関係と入力者様のお名前', placeholder: '友人　住宅　太郎', required: true,
+          when: { name: 'contact[relation]', in: ['その他'] } },
         { name: 'contact[comment1]', type: 'textarea', label: 'その他ご要望（任意）' },
         { name: 'contact[agree]', type: 'agree', value: '同意', required: true, label: '上記の注意事項を確認しました',
           note: '1.お問い合わせにご記入いただいた内容について当サイトよりご確認の連絡を差し上げる場合がありますので、予めご了承ください。<br>' +
@@ -505,9 +516,18 @@
     ui.body.appendChild(row);
     scrollToQuestion(ui.questionRow);
 
+    function active(f) {
+      if (!f.when) return true;
+      var v = inputs[f.when.name] ? inputs[f.when.name]() : state.answers[f.when.name];
+      return f.when.in.indexOf(v) !== -1;
+    }
+
+    // 条件に合わない欄は空にして送る（前に入れた値が残らないように）
     function collect() {
       var values = {};
-      step.fields.forEach(function (f) { values[f.name] = normalize(f, inputs[f.name]()); });
+      step.fields.forEach(function (f) {
+        values[f.name] = active(f) ? normalize(f, inputs[f.name]()) : (f.type === 'checkbox' ? [] : '');
+      });
       return values;
     }
 
@@ -516,7 +536,9 @@
       var values = collect();
       var okAll = true;
       step.fields.forEach(function (f, i) {
-        var msg = check(f, values[f.name], values);
+        var on = active(f);
+        grid.children[i].style.display = on ? '' : 'none';
+        var msg = on ? check(f, values[f.name], values) : '';
         if (msg) okAll = false;
         var errEl = grid.children[i].querySelector('.hbc-error');
         if (showErrors || !msg) errEl.textContent = showErrors ? msg : '';
