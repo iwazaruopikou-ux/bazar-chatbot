@@ -74,9 +74,21 @@
 .hbc-submit { width: 100%; background: #e60012; }
 .hbc-submit:hover { background: #c4000f; }
 
+/* ページ内に埋め込む表示（mode: 'inline'） */
+.hbc-inline-wrap { max-width: 720px; margin: 16px auto; }
+.hbc-window.hbc-inline { position: relative; right: auto; bottom: auto; z-index: auto; width: 100%; height: 680px; max-height: 85vh;
+  border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.15); border: 1px solid #f0c9a4; }
+.hbc-inline .hbc-card { width: 85%; }
+.hbc-switch { display: block; margin: 12px auto; background: none; border: 0; color: #666; font-size: 13px; text-decoration: underline; cursor: pointer; font-family: inherit; }
+.hbc-switch:hover { color: #e8731e; }
+/* 裏で使う元のフォームは、消さずに画面の外へ移す */
+.hbc-offscreen { position: absolute !important; left: -10000px !important; top: 0 !important; width: 960px !important; }
+
 /* スマートフォン：全画面表示 */
 @media (max-width: 600px) {
   .hbc-window { right: 0; left: 0; top: 0; width: 100%; height: 100%; max-height: none; border-radius: 0; }
   .hbc-launcher { right: 10px; bottom: 10px; }
-  .hbc-card { width: 100%; }
+  .hbc-card, .hbc-inline .hbc-card { width: 100%; }
+  .hbc-window.hbc-inline { position: relative; height: 80vh; max-height: none; border-radius: 10px; }
+  .hbc-inline-wrap { margin: 10px 0; }
 }

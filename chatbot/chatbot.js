@@ -22,7 +22,16 @@
     submitName: 'confirm',        // 元のフォームの「入力内容を確認する」ボタンの name
     storageKey: 'hb_chatbot_v1',  // 入力途中の回答を保存するキー（ページ再読み込み対策）
     autoOpenDelay: 1500,          // ページ表示から自動で開くまでの時間（ミリ秒）。0 で自動では開かない
-    cvKey: 'hb_chatbot_cv'        // チャット経由で送信したことを完了画面に伝える印（chatbot-complete.js が読む）
+    cvKey: 'hb_chatbot_cv',       // チャット経由で送信したことを完了画面に伝える印（chatbot-complete.js が読む）
+
+    // 表示のしかた
+    //   'inline' : ページの中にチャットを大きく表示し、元の地域選択・フォームは見えなくする（裏では動いている）
+    //   'popup'  : 右下に小さな窓で表示する
+    mode: 'inline',
+    mountBefore: 'form[name="form1"]',                          // inline の時、チャットを置く場所（この要素の直前）
+    hideInInline: ['form[name="form1"]', 'iframe[name="sendform"]'], // inline の時に見えなくする要素
+    fallbackLabel: 'チャットではなく、フォームで入力したい方はこちら',
+    backLabel: 'チャットで入力する'
   };
 
   var PREFS = ['北海道', '青森県', '岩手県', '宮城県', '秋田県', '山形県', '福島県', '茨城県', '栃木県', '群馬県',
@@ -337,6 +346,8 @@
   }
 
   function build() {
+    if (CONFIG.mode === 'inline' && document.querySelector(CONFIG.mountBefore)) return buildInline();
+    CONFIG.mode = 'popup';
     ui.launcher = h('button', { class: 'hbc-launcher', type: 'button' },
       '<img src="' + CONFIG.icon + '" alt=""><span>' + esc(CONFIG.launcherLabel) + '</span>');
     ui.win = h('div', { class: 'hbc-window', role: 'dialog', 'aria-label': CONFIG.title });
@@ -354,14 +365,53 @@
     document.body.appendChild(ui.win);
   }
 
+  // ページ内に埋め込む表示。元の地域選択とフォームは画面の外へ移すだけで、消さない（裏で使うため）
+  function buildInline() {
+    var mount = document.querySelector(CONFIG.mountBefore);
+    ui.wrap = h('div', { class: 'hbc-inline-wrap' });
+    ui.win = h('div', { class: 'hbc-window hbc-inline', role: 'region', 'aria-label': CONFIG.title });
+    ui.win.innerHTML =
+      '<div class="hbc-header"><img src="' + CONFIG.icon + '" alt=""><span class="hbc-title">' + esc(CONFIG.title) + '</span></div>' +
+      '<div class="hbc-progress"><div class="hbc-progress-bar"></div><div class="hbc-progress-label"></div></div>' +
+      '<div class="hbc-body"></div>';
+    ui.body = ui.win.querySelector('.hbc-body');
+    ui.bar = ui.win.querySelector('.hbc-progress-bar');
+    ui.label = ui.win.querySelector('.hbc-progress-label');
+    var toForm = h('button', { type: 'button', class: 'hbc-switch' }, esc(CONFIG.fallbackLabel));
+    ui.wrap.appendChild(ui.win);
+    ui.wrap.appendChild(toForm);
+    mount.parentNode.insertBefore(ui.wrap, mount);
+
+    var toChat = h('button', { type: 'button', class: 'hbc-switch hbc-hidden' }, esc(CONFIG.backLabel));
+    mount.parentNode.insertBefore(toChat, mount);
+
+    var hidden = [];
+    CONFIG.hideInInline.forEach(function (sel) {
+      document.querySelectorAll(sel).forEach(function (el) { el.classList.add('hbc-offscreen'); hidden.push(el); });
+    });
+    toForm.addEventListener('click', function () {
+      hidden.forEach(function (el) { el.classList.remove('hbc-offscreen'); });
+      ui.wrap.classList.add('hbc-hidden');
+      toChat.classList.remove('hbc-hidden');
+      track('fallback');
+    });
+    toChat.addEventListener('click', function () {
+      hidden.forEach(function (el) { el.classList.add('hbc-offscreen'); });
+      ui.wrap.classList.remove('hbc-hidden');
+      toChat.classList.add('hbc-hidden');
+      ui.wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
   function open() {
     if (!ui.win.classList.contains('hbc-open')) track('open');
     ui.win.classList.add('hbc-open');
-    ui.launcher.classList.add('hbc-hidden');
+    if (ui.launcher) ui.launcher.classList.add('hbc-hidden');
     if (!ui.body.childNodes.length) replay();
   }
 
   function close() {
+    if (CONFIG.mode === 'inline') return;
     ui.win.classList.remove('hbc-open');
     ui.launcher.classList.remove('hbc-hidden');
   }
@@ -755,7 +805,7 @@
     if (!searchForm() && !formDoc() && !document.querySelector('iframe[name="' + CONFIG.frameName + '"]')) return;
     load();
     build();
-    if (state.index > 0) open();
+    if (CONFIG.mode === 'inline' || state.index > 0) open();
     else if (CONFIG.autoOpenDelay > 0 && window.innerWidth > 768) setTimeout(open, CONFIG.autoOpenDelay);
   }
 
