@@ -21,7 +21,8 @@
     searchFormName: 'form1',      // 地域選択フォームの name
     submitName: 'confirm',        // 元のフォームの「入力内容を確認する」ボタンの name
     storageKey: 'hb_chatbot_v1',  // 入力途中の回答を保存するキー（ページ再読み込み対策）
-    autoOpenDelay: 1500           // ページ表示から自動で開くまでの時間（ミリ秒）。0 で自動では開かない
+    autoOpenDelay: 1500,          // ページ表示から自動で開くまでの時間（ミリ秒）。0 で自動では開かない
+    cvKey: 'hb_chatbot_cv'        // チャット経由で送信したことを完了画面に伝える印（chatbot-complete.js が読む）
   };
 
   var PREFS = ['北海道', '青森県', '岩手県', '宮城県', '秋田県', '山形県', '福島県', '茨城県', '栃木県', '群馬県',
@@ -173,6 +174,21 @@
     submit: '入力内容を確認する',
     notFound: '申し訳ございません。フォームの読み込みに失敗しました。ページを再読み込みしてお試しください。'
   };
+
+  /* ================================================================
+   * 計測（Googleタグマネージャー / Googleアナリティクス）
+   *   イベント名: hb_chatbot_open（開いた） / hb_chatbot_step（各質問に進んだ） / hb_chatbot_submit（確認画面へ）
+   * ================================================================ */
+  function track(name, params) {
+    params = params || {};
+    try {
+      window.dataLayer = window.dataLayer || [];
+      var ev = { event: 'hb_chatbot_' + name };
+      for (var k in params) ev[k] = params[k];
+      window.dataLayer.push(ev);
+      if (typeof window.gtag === 'function') window.gtag('event', 'hb_chatbot_' + name, params);
+    } catch (e) { /* 計測に失敗してもチャットは止めない */ }
+  }
 
   /* ================================================================
    * 元のフォームとのやりとり
@@ -339,6 +355,7 @@
   }
 
   function open() {
+    if (!ui.win.classList.contains('hbc-open')) track('open');
     ui.win.classList.add('hbc-open');
     ui.launcher.classList.add('hbc-hidden');
     if (!ui.body.childNodes.length) replay();
@@ -432,6 +449,8 @@
   }
 
   function next() {
+    var s = STEPS[state.index];
+    if (s) track('step', { chatbot_step: state.index + 1, chatbot_step_id: s.id });
     state.index++;
     save();
     show();
@@ -697,6 +716,9 @@
       btn.disabled = true;
       btn.textContent = '送信中…';
       try { sessionStorage.removeItem(CONFIG.storageKey); } catch (e) { /* 無視 */ }
+      // 完了画面で「チャット経由の申込み」と分かるように印を残す（1時間で無効）
+      try { localStorage.setItem(CONFIG.cvKey, String(Date.now())); } catch (e) { /* 無視 */ }
+      track('submit');
       submit.click();   // 元フォームの「入力内容を確認する」→ 確認画面へ
     }
   }
