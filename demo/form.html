@@ -186,8 +186,8 @@ h3{font-size:16px;margin:24px 0 8px}
 </form>
 <script>
 // ---- デモ用：本物のページの動きをまねる部分 ----
-// 家族人数が1人の時に「建築後のご利用用途」を表示（本物の条件は未確認のため仮）
-document.getElementsByName('contact[family]')[0].addEventListener('change', function () {
+// 家族人数が1人の時に「建築後のご利用用途」を表示（本物の quotes_send2.php と同じく click で判定）
+document.getElementsByName('contact[family]')[0].addEventListener('click', function () {
   document.querySelector('.familyAdditional').style.display = this.value === '1' ? '' : 'none';
 });
 // 現在のお住まいが「持ち家」の時に「築年数」「建築内容」を表示（本物のフォームと同じ動き）

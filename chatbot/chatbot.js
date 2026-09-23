@@ -98,7 +98,7 @@
       fields: [
         { name: 'contact[tel1]', type: 'text', required: true, placeholder: '090', rule: 'num', inputmode: 'numeric', tel: true },
         { name: 'contact[tel2]', type: 'text', required: true, placeholder: '1234', rule: 'num', inputmode: 'numeric', tel: true },
-        { name: 'contact[tel3]', type: 'text', required: true, placeholder: '5678', rule: 'num', inputmode: 'numeric', tel: true }
+        { name: 'contact[tel3]', type: 'text', required: true, placeholder: '5678', rule: 'tel', inputmode: 'numeric', tel: true }
       ]
     },
     {
@@ -122,7 +122,7 @@
     {
       // 元のフォームで「建築後のご利用用途」欄が表示される条件の時だけ聞く
       id: 'const_use',
-      showIf: { visible: 'contact[const_use]' },
+      showIf: { name: 'contact[family]', in: ['1'] },   // quotes_send.php が家族人数1人の時に必須にしている
       bot: ['建築後のご利用用途をお知らせ下さい。'],
       fields: [
         { name: 'contact[const_use]', type: 'radio', required: true, options: ['別荘として使用', '自宅として入居', '投資・資産運用の為', 'その他'] },
@@ -175,6 +175,7 @@
     kana: '全角カタカナで入力してください',
     zip: '7桁の数字で入力してください',
     num: '数字で入力してください',
+    tel: '電話番号を正しく入力してください',
     email: 'メールアドレスの形式が正しくありません',
     reemail: 'メールアドレスが一致しません',
     age: '年齢を数字で入力してください',
@@ -234,6 +235,7 @@
         el.value = values[0] || '';
         fire(el, 'input');
         fire(el, 'change');
+        if (el.tagName === 'SELECT') fire(el, 'click');   // quotes_send2.php は家族人数を click で判定している
       }
     }
   }
@@ -258,6 +260,9 @@
 
   function isSkipped(step) {
     if (step.type === 'area') return !searchForm();
+    if (step.showIf && step.showIf.name) {
+      return step.showIf.in.indexOf(state.answers[step.showIf.name]) === -1;
+    }
     if (step.showIf && step.showIf.visible) {
       var doc = formDoc();
       if (!doc) return true;
@@ -291,7 +296,7 @@
   }
 
   function normalize(f, v) {
-    if (f.rule === 'zip' || f.rule === 'num' || f.rule === 'age') return toHalf(v).replace(/[^0-9]/g, '');
+    if (f.rule === 'zip' || f.rule === 'num' || f.rule === 'tel' || f.rule === 'age') return toHalf(v).replace(/[^0-9]/g, '');
     if (f.rule === 'email' || f.rule === 'reemail') return toHalf(v).trim();
     if (f.rule === 'kana') return v.replace(/[ぁ-ゖ]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) + 0x60); }).trim();
     return typeof v === 'string' ? v.trim() : v;
@@ -304,6 +309,14 @@
       case 'kana': return /^[ァ-ヶー　 ]+$/.test(v) ? '' : MESSAGES.kana;
       case 'zip': return /^\d{7}$/.test(v) ? '' : MESSAGES.zip;
       case 'num': return /^\d+$/.test(v) ? '' : MESSAGES.num;
+      case 'tel': {
+        // quotes_send.php と同じ判定：0始まり10〜11桁、携帯・IP電話（020/050/070/080/090）は11桁
+        if (!/^\d+$/.test(v)) return MESSAGES.num;
+        var t1 = values['contact[tel1]'] || '', all = t1 + (values['contact[tel2]'] || '') + v;
+        if (!/^0\d{9,10}$/.test(all)) return MESSAGES.tel;
+        var mobile = ['020', '050', '070', '080', '090'].indexOf(t1) !== -1;
+        return (mobile ? all.length === 11 : all.length === 10) ? '' : MESSAGES.tel;
+      }
       case 'email': return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? '' : MESSAGES.email;
       case 'reemail': return v === values['contact[email]'] ? '' : MESSAGES.reemail;
       case 'age': return /^\d{1,3}$/.test(v) && +v > 0 && +v < 130 ? '' : MESSAGES.age;
