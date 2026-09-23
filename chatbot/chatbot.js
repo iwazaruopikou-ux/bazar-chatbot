@@ -16,7 +16,7 @@
   var CONFIG = {
     title: '一括資料請求はこちらから！',
     launcherLabel: '一括資料請求',
-    icon: 'https://ui.ugchatform.net/sgs/files/grex/chatform/icon/guide2_icon2.png',
+    icon: '/js/chatbot/icon.png',   // チャットのアイコン画像
     profile: 'auto',              // 'pc'（quotes_search_simple.php）/ 'sp'（quotes_search_sp.php）/ 'auto'（自動判定）
     searchFormName: 'form1',      // PC：地域選択フォームの name
     sp: {

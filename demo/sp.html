@@ -51,7 +51,7 @@ var PREFS = ['北海道','青森県','岩手県','宮城県','秋田県','山形
 document.querySelectorAll('select[name=province]').forEach(function (s) { PREFS.forEach(function (p, i) { s.add(new Option(p, i + 1)); }); });
 window.showDemoResult = function (text) { var r = document.getElementById('result'); r.querySelector('pre').textContent = text; r.style.display = 'block'; };
 // デモ用：本物の /js/city.php・quotes_city_select_sp.php の代わり
-window.HB_CHATBOT_CONFIG = { sp: { cityUrl: 'city-demo.json', formUrl: 'sp_form.html' } };
+window.HB_CHATBOT_CONFIG = { icon: '../chatbot/icon.png', sp: { cityUrl: 'city-demo.json', formUrl: 'sp_form.html' } };
 </script>
 <script src="../chatbot/chatbot.js"></script>
 </body>

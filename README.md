@@ -38,19 +38,20 @@
 | スマホ | `quotes_search_sp.php` | `quotes_city_select_sp.php` → `quotes_send_sp.php`（チャットが裏で開く） | `quotes_send_complete_sp.php` |
 
 1. `chatbot` フォルダを、サイトの `/js/chatbot/` にアップロードする
-2. `quotes_search_simple.php` と `quotes_search_sp.php` の `</body>` の直前に、次の2行を追加する
-   ```html
-   <link rel="stylesheet" href="/js/chatbot/chatbot.css">
-   <script src="/js/chatbot/chatbot.js"></script>
-   ```
-3. 今のチャットボット（ugchatform）のタグを削除する。`<!--チャットボット-->` 〜 `<!--チャットボット終了-->` の間にあり、次の4か所に入っています
-   - `vendors/quotes_search_simple.php`
-   - `vendors/quotes_send.php`
-   - `vendors/quotes_send_complete.php`（ugchatform の成果計測タグ。下の「広告の成果計測」のタグに置き換える）
-   - `vendors/quotes_search_sp.php`（スマホ版）
-   - `vendors/quotes_send_sp.php`（スマホ版）
-   - `vendors/quotes_send_complete_sp.php`（スマホ版の完了画面。入っていれば）
-4. チャットで最後まで入力し、確認画面に正しく表示されることを確認する
+2. `site-changes/vendors/` の6つのファイルで、サイトの `vendors/` の同じ名前のファイルを置き換える
+
+   | ファイル | 変更内容 |
+   |---|---|
+   | `quotes_search_simple.php` | ugchatform のタグを削除し、新しいチャットボットの2行を追加 |
+   | `quotes_search_sp.php` | 同上（スマホ版） |
+   | `quotes_send.php` | ugchatform のタグを削除 |
+   | `quotes_send_sp.php` | 同上（スマホ版） |
+   | `quotes_send_complete.php` | ugchatform の成果計測タグを、新しい計測タグに置き換え |
+   | `quotes_send_complete_sp.php` | 同上（スマホ版。ugchatform のタグが2か所あったので両方削除） |
+
+   変更したのはチャットボットのタグの部分だけで、ほかは預かったファイルのままです。
+   預かった後にサーバー側のファイルを書き換えていた場合は、置き換えずに同じ部分だけ手で直してください。
+3. チャットで最後まで入力し、確認画面・完了画面まで進むことを確かめる（パソコンとスマホの両方）
 
 > いきなり本番ページを書き換えず、ページのコピー（例：`quotes_search_simple_test.php`）で先に試すのがおすすめです。
 
@@ -81,8 +82,8 @@
 
 ### アイコン画像について
 
-チャットのアイコンは今、ugchatform のサーバーにある画像を使っています。ugchatform を解約すると表示されなくなるので、
-画像を自社サーバーに保存して、`chatbot.js` の最初にある `icon:` の URL を書き換えてください。
+チャットのアイコンは `chatbot/icon.png`（今の ugchatform で使っている画像を保存したもの）です。
+別の画像にする場合は、このファイルを差し替えてください。
 
 ## よくある変更
 
