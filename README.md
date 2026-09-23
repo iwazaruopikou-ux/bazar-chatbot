@@ -25,13 +25,20 @@
 
 ## 試し方（デモ）
 
-`demo/index.html` をサーバー上で開くと、本物のページに近い形で動作を確認できます。
+`demo/index.html`（パソコン版）と `demo/sp.html`（スマホ版）をサーバー上で開くと、本物のページに近い形で動作を確認できます。
 最後のボタンを押すと、送信される予定の内容が画面に表示されます（実際には送信されません）。
 
 ## 本番サイトへの設置
 
+同じファイルがパソコン版・スマホ版の両方で動きます（ページを見て自動で切り替わります）。
+
+| | 地域選択のページ | フォーム | 送信完了画面 |
+|---|---|---|---|
+| パソコン | `quotes_search_simple.php` | `quotes_send2.php`（ページ内の iframe） | `quotes_send_complete.php` |
+| スマホ | `quotes_search_sp.php` | `quotes_city_select_sp.php` → `quotes_send_sp.php`（チャットが裏で開く） | `quotes_send_complete_sp.php` |
+
 1. `chatbot` フォルダを、サイトの `/js/chatbot/` にアップロードする
-2. `quotes_search_simple.php` の `</body>` の直前に、次の2行を追加する
+2. `quotes_search_simple.php` と `quotes_search_sp.php` の `</body>` の直前に、次の2行を追加する
    ```html
    <link rel="stylesheet" href="/js/chatbot/chatbot.css">
    <script src="/js/chatbot/chatbot.js"></script>
@@ -41,6 +48,8 @@
    - `vendors/quotes_send.php`
    - `vendors/quotes_send_complete.php`（ugchatform の成果計測タグ。下の「広告の成果計測」のタグに置き換える）
    - `vendors/quotes_search_sp.php`（スマホ版）
+   - `vendors/quotes_send_sp.php`（スマホ版）
+   - `vendors/quotes_send_complete_sp.php`（スマホ版の完了画面。入っていれば）
 4. チャットで最後まで入力し、確認画面に正しく表示されることを確認する
 
 > いきなり本番ページを書き換えず、ページのコピー（例：`quotes_search_simple_test.php`）で先に試すのがおすすめです。
@@ -50,7 +59,7 @@
 チャットで送信すると印が残り、**送信完了画面**でその印があるときだけ成果として数えます。
 同じ申込みが2回数えられることはありません。
 
-1. 送信完了画面（`vendors/quotes_send_complete.php`）の `</body>` の直前に、次を追加する
+1. 送信完了画面（`vendors/quotes_send_complete.php` と `vendors/quotes_send_complete_sp.php`）の `</body>` の直前に、次を追加する
    ```html
    <script>
    window.hbChatbotConversion = function () {

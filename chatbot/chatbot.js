@@ -17,9 +17,14 @@
     title: '一括資料請求はこちらから！',
     launcherLabel: '一括資料請求',
     icon: 'https://ui.ugchatform.net/sgs/files/grex/chatform/icon/guide2_icon2.png',
-    frameName: 'sendform',        // 元のフォームが表示される iframe の name
-    searchFormName: 'form1',      // 地域選択フォームの name
-    submitName: 'confirm',        // 元のフォームの「入力内容を確認する」ボタンの name
+    profile: 'auto',              // 'pc'（quotes_search_simple.php）/ 'sp'（quotes_search_sp.php）/ 'auto'（自動判定）
+    searchFormName: 'form1',      // PC：地域選択フォームの name
+    sp: {
+      provinceSelect: 'form.chokusetsu select[name="province"]', // スマホ：都道府県の選択欄
+      cityUrl: '/js/city.php',                                    // 市区町村の一覧（PC版と同じもの）
+      formUrl: '/vendors/quotes_city_select_sp.php'               // ここから quotes_send_sp.php へ自動で進む
+    },
+    submitNames: ['confirm', 'check'], // 元のフォームの「入力内容を確認する」ボタンの name（PC / スマホ）
     storageKey: 'hb_chatbot_v1',  // 入力途中の回答を保存するキー（ページ再読み込み対策）
     autoOpenDelay: 1500,          // ページ表示から自動で開くまでの時間（ミリ秒）。0 で自動では開かない
     cvKey: 'hb_chatbot_cv',       // チャット経由で送信したことを完了画面に伝える印（chatbot-complete.js が読む）
@@ -28,8 +33,17 @@
     //   'inline' : ページの中にチャットを大きく表示し、元の地域選択・フォームは見えなくする（裏では動いている）
     //   'popup'  : 右下に小さな窓で表示する
     mode: 'inline',
-    mountBefore: 'form[name="form1"]',                          // inline の時、チャットを置く場所（この要素の直前）
-    hideInInline: ['form[name="form1"]', 'iframe[name="sendform"]'], // inline の時に見えなくする要素
+    // ページごとの設定（mountBefore：チャットを置く場所 / hideInInline：見えなくする元の部品 / frameName：元のフォームの iframe）
+    pcPage: {
+      frameName: 'sendform',
+      mountBefore: 'form[name="form1"]',
+      hideInInline: ['form[name="form1"]', 'iframe[name="sendform"]']
+    },
+    spPage: {
+      frameName: 'hbc_sendform',
+      mountBefore: '.hb-form-card',
+      hideInInline: ['.hb-form-card', '.hb-bottom-form']
+    },
     fallbackLabel: 'チャットではなく、フォームで入力したい方はこちら',
     backLabel: 'チャットで入力する'
   };
@@ -221,8 +235,17 @@
     el.dispatchEvent(ev);
   }
 
-  function writeField(doc, name, value) {
+  // PC とスマホで name が違う項目
+  var ALIASES = { 'contact[address]': 'contact[address_street]' };
+
+  function fieldEls(doc, name) {
     var els = doc.getElementsByName(name);
+    if (!els.length && ALIASES[name]) els = doc.getElementsByName(ALIASES[name]);
+    return els;
+  }
+
+  function writeField(doc, name, value) {
+    var els = fieldEls(doc, name);
     if (!els.length) return;
     var values = Array.isArray(value) ? value : [value == null ? '' : String(value)];
     for (var i = 0; i < els.length; i++) {
@@ -259,7 +282,10 @@
   }
 
   function isSkipped(step) {
-    if (step.type === 'area') return !searchForm();
+    if (step.type === 'area') return !areaAdapter().available();
+    var doc = formDoc();
+    // 元のフォームにその項目が無ければ聞かない（例：スマホ版には「建築後のご利用用途」が無い）
+    if (doc && step.fields && !step.fields.some(function (f) { return fieldEls(doc, f.name).length; })) return true;
     if (step.showIf && step.showIf.name) {
       return step.showIf.in.indexOf(state.answers[step.showIf.name]) === -1;
     }
@@ -314,7 +340,7 @@
         // quotes_send.php と同じ判定：0始まり10〜11桁、携帯・IP電話（020/050/070/080/090）は11桁
         if (!/^\d+$/.test(v)) return MESSAGES.num;
         var t1 = values['contact[tel1]'] || '', all = t1 + (values['contact[tel2]'] || '') + v;
-        if (!/^0\d{9,10}$/.test(all)) return MESSAGES.tel;
+        if (!/^0\d{9,10}$/.test(all) || /(\d)\1{3,}/.test(all)) return MESSAGES.tel;   // 同じ数字4つ以上の連続は quotes_send_sp.php がエラーにする
         var mobile = ['020', '050', '070', '080', '090'].indexOf(t1) !== -1;
         return (mobile ? all.length === 11 : all.length === 10) ? '' : MESSAGES.tel;
       }
@@ -666,11 +692,99 @@
     return parts.join('<br>');
   }
 
-  /* ---------- 地域選択（ページ上の地域選択フォームを操作） ---------- */
+  /* ---------- 地域選択 ----------
+   * パソコン版とスマホ版で、地域を選んでからフォームが出るまでの流れが違うので、2通り用意している。
+   *   pc : quotes_search_simple.php … ページ内の地域選択（form1）を送信 → 下の iframe に quotes_send2.php
+   *   sp : quotes_search_sp.php     … 都道府県 → quotes_city_select_sp.php → quotes_send_sp.php とページが進む。
+   *        チャットでは市区町村を /js/city.php から取り、隠した iframe で quotes_city_select_sp.php を開く
+   *        （そこから quotes_send_sp.php へ自動で進む。工務店の紐づけは元と同じ）
+   */
+  var AREA = {
+    pc: {
+      available: function () { return !!searchForm(); },
+      prefOptions: function () { return optionsOf(searchForm().elements['province']); },
+      loadCities: function (pref, cb) {
+        var form = searchForm(), srcPref = form.elements['province'], srcCity = form.elements['quotes[city]'];
+        if (srcPref.value === pref && srcCity.options.length > 1) return cb(optionsOf(srcCity));
+        var before = optionKey(srcCity);
+        srcPref.value = pref;
+        fire(srcPref, 'change');   // ページ側（callCities）が市区町村の一覧を差し替える
+        waitFor(function () { return optionKey(srcCity) !== before && srcCity.options.length > 1; }, 8000, function () {
+          cb(optionsOf(srcCity));
+        });
+      },
+      loadForm: function (area, cb) {
+        var form = searchForm();
+        form.elements['province'].value = area.pref;
+        form.elements['quotes[city]'].value = area.city;
+        var frame = document.querySelector('iframe[name="' + CONFIG.frameName + '"]');
+        var loaded = false;
+        if (frame) {
+          frame.addEventListener('load', function onLoad() { loaded = true; frame.removeEventListener('load', onLoad); });
+          quietFrame(frame);
+        }
+        var btn = form.querySelector('input[type="image"], input[type="submit"], button[type="submit"]');
+        if (btn) btn.click(); else form.submit();
+        waitFor(function () { return loaded && formDoc(); }, 15000, cb);
+      }
+    },
+    sp: {
+      available: function () { return !!spProvinceSelect(); },
+      prefOptions: function () { return optionsOf(spProvinceSelect()); },
+      loadCities: function (pref, cb) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', CONFIG.sp.cityUrl + '?selected=' + encodeURIComponent(pref));
+        xhr.onload = function () {
+          var list = [{ value: '', text: '選択してください' }];
+          try {
+            var result = JSON.parse(xhr.responseText).result || {};
+            for (var id in result) list.push({ value: id, text: result[id] });
+          } catch (e) { /* 読めなければ空のまま */ }
+          cb(list);
+        };
+        xhr.onerror = function () { cb([{ value: '', text: '読み込みに失敗しました' }]); };
+        xhr.send();
+      },
+      loadForm: function (area, cb) {
+        var frame = document.querySelector('iframe[name="' + CONFIG.frameName + '"]');
+        if (!frame) {
+          frame = h('iframe', { name: CONFIG.frameName, class: 'hbc-offscreen', title: '資料請求フォーム', 'aria-hidden': 'true', tabindex: '-1' });
+          document.body.appendChild(frame);
+        } else {
+          quietFrame(frame);
+        }
+        // 元の quotes_search_sp.php のフォームと同じく、ページに入っている vid[]（工務店）も引き継ぐ
+        var q = ['province=' + encodeURIComponent(area.pref), 'quotes%5Bcity%5D=' + encodeURIComponent(area.city), 'go_form=ok'];
+        var form = spProvinceSelect().form;
+        if (form) {
+          var vids = form.querySelectorAll('input[name="vid[]"]');
+          for (var i = 0; i < vids.length; i++) q.push('vid%5B%5D=' + encodeURIComponent(vids[i].value));
+        }
+        var loaded = false;
+        frame.addEventListener('load', function onLoad() {
+          if (formDoc()) { loaded = true; frame.removeEventListener('load', onLoad); }
+        });
+        frame.src = CONFIG.sp.formUrl + '?' + q.join('&');
+        waitFor(function () { return loaded && formDoc(); }, 15000, cb);
+      }
+    }
+  };
+
+  function areaAdapter() { return AREA[CONFIG.profile]; }
+
+  function spProvinceSelect() { return document.querySelector(CONFIG.sp.provinceSelect); }
+
+  // 読み込まれているフォームが、選んだ地域のものか
+  function areaLoaded(area) {
+    var frame = document.querySelector('iframe[name="' + CONFIG.frameName + '"]');
+    if (!frame || !formDoc()) return false;
+    var url = '';
+    try { url = decodeURIComponent(frame.contentWindow.location.search) + '&'; } catch (e) { return false; }
+    return url.indexOf('province=' + area.pref + '&') !== -1 && url.indexOf('[city]=' + area.city + '&') !== -1;
+  }
+
   function renderArea(step) {
-    var form = searchForm();
-    var srcPref = form.elements['province'];
-    var srcCity = form.elements['quotes[city]'];
+    var adapter = areaAdapter();
     var row = h('div', { class: 'hbc-row hbc-right' });
     var card = h('div', { class: 'hbc-card' });
     card.innerHTML =
@@ -681,22 +795,21 @@
     var city = card.querySelector('.hbc-city');
     var ok = card.querySelector('.hbc-next');
     var err = card.querySelector('.hbc-error');
-    copyOptions(srcPref, pref);
+    fillOptions(pref, adapter.prefOptions());
     row.appendChild(card);
     ui.body.appendChild(row);
     scrollToQuestion(ui.questionRow);
 
+    var seq = 0;
     function loadCities(keep) {
       city.disabled = true;
       ok.disabled = true;
       if (!pref.value) return;
-      var before = optionKey(srcCity);
-      srcPref.value = pref.value;
-      fire(srcPref, 'change');
+      var mine = ++seq;
       city.innerHTML = '<option value="">読み込み中…</option>';
-      // 市区町村の一覧はページ側で都道府県に合わせて差し替わるので、それを待ってから写す
-      waitFor(function () { return optionKey(srcCity) !== before; }, 3000, function () {
-        copyOptions(srcCity, city);
+      adapter.loadCities(pref.value, function (list) {
+        if (mine !== seq) return;   // 途中で都道府県を選び直した
+        fillOptions(city, list);
         city.disabled = false;
         if (keep) city.value = keep;
         ok.disabled = !city.value;
@@ -708,29 +821,19 @@
 
     if (state.area) {
       pref.value = state.area.pref;
-      if (srcPref.value === pref.value) { copyOptions(srcCity, city); city.disabled = false; city.value = state.area.city; ok.disabled = !city.value; }
-      else loadCities(state.area.city);
+      loadCities(state.area.city);
     }
 
     ok.addEventListener('click', function () {
       if (!pref.value || !city.value) { err.textContent = MESSAGES.area; return; }
       ok.disabled = true;
       ok.textContent = '読み込み中…';
-      srcPref.value = pref.value;
-      srcCity.value = city.value;
       state.area = {
         pref: pref.value, city: city.value,
         prefName: pref.options[pref.selectedIndex].text,
         cityName: city.options[city.selectedIndex].text
       };
-      // 地域フォームを送信 → 下の iframe に、その地域の工務店と元のフォームが表示される
-      var frame = document.querySelector('iframe[name="' + CONFIG.frameName + '"]');
-      var loaded = false;
-      if (frame) frame.addEventListener('load', function onLoad() { loaded = true; frame.removeEventListener('load', onLoad); });
-      if (frame) quietFrame(frame);
-      var btn = form.querySelector('input[type="image"], input[type="submit"], button[type="submit"]');
-      if (btn) btn.click(); else form.submit();
-      waitFor(function () { return loaded && formDoc(); }, 15000, function (found) {
+      adapter.loadForm(state.area, function (found) {
         if (!found) { err.textContent = MESSAGES.notFound; ok.disabled = false; ok.textContent = '次へ'; return; }
         writeAll(formDoc());   // 地域を変えて読み込み直した場合、それまでの回答を入れ直す
         row.remove();
@@ -740,7 +843,7 @@
     });
   }
 
-  // mgform.js の「入力が完了していません」確認を、チャットによる読み込み直しでは出さない
+  // mgform_grex.js の「入力が完了していません」確認を、チャットによる読み込み直しでは出さない
   function quietFrame(frame) {
     try { frame.contentWindow.ignorePageConfirm = true; frame.contentWindow.isChanged = false; } catch (e) { /* 無視 */ }
   }
@@ -751,12 +854,15 @@
     return s;
   }
 
-  function copyOptions(from, to) {
+  function optionsOf(sel) {
+    var list = [];
+    for (var i = 0; i < sel.options.length; i++) list.push({ value: sel.options[i].value, text: sel.options[i].text });
+    return list;
+  }
+
+  function fillOptions(to, list) {
     to.innerHTML = '';
-    for (var i = 0; i < from.options.length; i++) {
-      var o = from.options[i];
-      to.appendChild(h('option', { value: o.value }, esc(o.value ? o.text : '選択してください')));
-    }
+    list.forEach(function (o) { to.appendChild(h('option', { value: o.value }, esc(o.value ? o.text : '選択してください'))); });
   }
 
   /* ---------- 最後：元のフォームの確認ボタンを押す ---------- */
@@ -781,8 +887,10 @@
       var doc = formDoc();
       if (!doc) { err.textContent = MESSAGES.notFound; return; }
       writeAll(doc);
-      var submit = doc.getElementsByName(CONFIG.submitName)[0];
+      var submit = null;
+      CONFIG.submitNames.forEach(function (n) { submit = submit || doc.getElementsByName(n)[0]; });
       if (!submit) { err.textContent = MESSAGES.notFound; return; }
+      if (submit.form) submit.form.target = '_top';   // スマホ版のフォームは target が無いので、確認画面を画面全体に出す
       btn.disabled = true;
       btn.textContent = '送信中…';
       try { sessionStorage.removeItem(CONFIG.storageKey); } catch (e) { /* 無視 */ }
@@ -793,37 +901,25 @@
     }
   }
 
-  // ページを再読み込みした場合などに、選んだ地域のフォームが表示されているか確認し、違えば読み込み直す
+  // ページを再読み込みした場合などに、選んだ地域のフォームが読み込まれているか確認し、違えば読み込み直す
   function ensureArea(cb) {
-    var form = searchForm();
-    var frame = document.querySelector('iframe[name="' + CONFIG.frameName + '"]');
-    if (!form || !frame || !state.area) return cb();
-    var url = '';
-    try { url = decodeURIComponent(frame.contentWindow.location.search); } catch (e) { /* 無視 */ }
-    if (formDoc() && url.indexOf('province=' + state.area.pref + '&') !== -1 && url.indexOf('[city]=' + state.area.city + '&') !== -1) return cb();
-    var srcPref = form.elements['province'];
-    var srcCity = form.elements['quotes[city]'];
-    var before = optionKey(srcCity);
-    srcPref.value = state.area.pref;
-    fire(srcPref, 'change');
-    waitFor(function () { return optionKey(srcCity) !== before || srcPref.value === state.area.pref; }, 3000, function () {
-      waitFor(function () { for (var i = 0; i < srcCity.options.length; i++) if (srcCity.options[i].value === state.area.city) return true; return false; }, 3000, function () {
-        srcCity.value = state.area.city;
-        var loaded = false;
-        frame.addEventListener('load', function onLoad() { loaded = true; frame.removeEventListener('load', onLoad); });
-        quietFrame(frame);
-        var b = form.querySelector('input[type="image"], input[type="submit"], button[type="submit"]');
-        if (b) b.click(); else form.submit();
-        waitFor(function () { return loaded && formDoc(); }, 15000, cb);
-      });
-    });
+    if (!state.area || !areaAdapter().available() || areaLoaded(state.area)) return cb();
+    areaAdapter().loadForm(state.area, function () { cb(); });
   }
 
   /* ================================================================
    * 起動
    * ================================================================ */
   function init() {
-    if (!searchForm() && !formDoc() && !document.querySelector('iframe[name="' + CONFIG.frameName + '"]')) return;
+    var user = window.HB_CHATBOT_CONFIG || {};   // ページ側から設定を上書きできる
+    for (var k in user) {
+      if (user[k] && typeof user[k] === 'object' && !Array.isArray(user[k]) && CONFIG[k]) for (var j in user[k]) CONFIG[k][j] = user[k][j];
+      else CONFIG[k] = user[k];
+    }
+    if (CONFIG.profile === 'auto') CONFIG.profile = !searchForm() && spProvinceSelect() ? 'sp' : 'pc';
+    var prof = CONFIG[CONFIG.profile + 'Page'];
+    for (var p in prof) CONFIG[p] = prof[p];
+    if (!areaAdapter().available() && !formDoc()) return;
     load();
     build();
     if (CONFIG.mode === 'inline' || state.index > 0) open();

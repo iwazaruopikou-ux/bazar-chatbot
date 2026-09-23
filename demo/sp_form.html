@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><title>スマホ用フォーム（デモ用コピー）</title></head>
+<body>
+<!-- quotes_send_sp.php の入力欄を、name をそのままにコピーしたもの（デモ用） -->
+<form id="f" action="" method="post">
+  <label><input type="checkbox" name="contact[brochure][]" value="パンフレットや資料　（特長やこだわり、商品等）">パンフレット</label>
+  <label><input type="checkbox" name="contact[brochure][]" value="ショールーム・見学会・イベント等の情報が欲しい">ショールーム</label>
+  <label><input type="checkbox" name="contact[brochure][]" value="建築例の資料が見たい　（パンフレット・リーフレット・チラシ等）">建築例</label>
+  <label><input type="checkbox" name="contact[brochure][]" value="家づくりの進め方の分かる資料が欲しい　（パンフレット・リーフレット・チラシ等）">進め方</label>
+  <textarea name="contact[brochure_other]"></textarea>
+  <input name="contact[name]"><input name="contact[name2]"><input name="contact[name_read]"><input name="contact[name_read2]">
+  <input name="contact[zip]">
+  <select name="contact[addr_province]"><option value="">選択</option></select>
+  <input name="contact[addr_city]"><input name="contact[address_street]"><input name="contact[address_room]">
+  <input name="contact[email]">
+  <input name="contact[tel1]"><input name="contact[tel2]"><input name="contact[tel3]">
+  <input name="contact[age]">
+  <select name="contact[family]"><option value="">選択</option></select>
+  <span id="cs"></span><input name="contact[house_type]">
+  <div class="houseHolder" style="display:none"><span id="by"></span></div>
+  <div class="houseHolder" style="display:none"><span id="ci"></span></div>
+  <label><input type="radio" name="contact[const_location_yes_no]" value="1">有り</label>
+  <label><input type="radio" name="contact[const_location_yes_no]" value="2">無し</label>
+  <span id="st"></span><span id="bu"></span>
+  <input name="contact[work_location]"><textarea name="contact[comment1]"></textarea>
+  <span id="re"></span><input name="contact[relationetc]">
+  <input type="checkbox" name="contact[agree]" value="同意">
+  <input type="hidden" name="city" id="city"><input type="hidden" name="province" id="province">
+  <input type="hidden" name="action" value="confirm">
+  <input id="submitbutton" type="submit" name="check" value="入力内容を確認する">
+</form>
+<script>
+function radios(id, name, vals) { var el = document.getElementById(id); vals.forEach(function (v) { var l = document.createElement('label'); l.innerHTML = '<input type="radio" name="' + name + '" value="' + v + '">' + v; el.appendChild(l); }); }
+var PREFS = ['北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県','茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県','新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県','三重県','滋賀県','京都府','大阪府','兵庫県','奈良県','和歌山県','鳥取県','島根県','岡山県','広島県','山口県','徳島県','香川県','愛媛県','高知県','福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県'];
+PREFS.forEach(function (p) { document.getElementsByName('contact[addr_province]')[0].add(new Option(p, p)); });
+for (var i = 1; i <= 10; i++) document.getElementsByName('contact[family]')[0].add(new Option(i, i));
+radios('cs', 'contact[const_status]', ['持ち家（本人名義）', '持ち家（親名義）', 'マンション', '賃貸', 'その他']);
+radios('by', 'contact[build_year]', ['10～15年', '15～20年', '20～25年', '25年以上']);
+radios('ci', 'contact[const_info]', ['建て替え希望', '別の土地で新築希望']);
+radios('st', 'contact[const_start]', ['今すぐ', '半年以内', '1年以内', '1～2年以内', '2～3年以内', '検討中']);
+radios('bu', 'contact[const_budget]', ['1000～2000万円', '2000～3000万円', '3000万円～', 'まだ検討中']);
+radios('re', 'contact[relation]', ['ご本人', '配偶者', 'ご家族', 'その他']);
+// 本物と同じ：URL の地域を隠し欄に入れる
+var q = new URLSearchParams(location.search);
+document.getElementById('city').value = q.get('quotes[city]');
+document.getElementById('province').value = q.get('province');
+// 本物と同じ：持ち家の時に築年数・建築内容を表示
+document.getElementsByName('contact[const_status]').forEach(function (r) { r.addEventListener('click', function () {
+  document.querySelectorAll('.houseHolder').forEach(function (d) { d.style.display = /持ち家/.test(r.value) ? '' : 'none'; });
+}); });
+// 送信の代わりに内容を表示（本物はこのあと確認画面へ進む）
+document.getElementById('f').addEventListener('submit', function (e) {
+  e.preventDefault();
+  var lines = ['送信先の画面: ' + (this.target === '_top' ? '画面全体（確認画面が全体に出る）' : 'iframe の中'), 'vid[]: ' + q.getAll('vid[]').join(', '), ''];
+  new FormData(this).forEach(function (v, k) { if (v !== '') lines.push(k + ' = ' + v); });
+  (window.top.showDemoResult || alert)(lines.join('\n'));
+});
+</script>
+</body></html>
