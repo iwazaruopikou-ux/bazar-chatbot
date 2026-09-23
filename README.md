@@ -36,7 +36,11 @@
    <link rel="stylesheet" href="/js/chatbot/chatbot.css">
    <script src="/js/chatbot/chatbot.js"></script>
    ```
-3. 同じファイルの `<!--チャットボット-->` 〜 `<!--チャットボット終了-->` の間にある、今のチャットボット（ugchatform）の読み込みタグを削除する
+3. 今のチャットボット（ugchatform）のタグを削除する。`<!--チャットボット-->` 〜 `<!--チャットボット終了-->` の間にあり、次の4か所に入っています
+   - `vendors/quotes_search_simple.php`
+   - `vendors/quotes_send.php`
+   - `vendors/quotes_send_complete.php`（ugchatform の成果計測タグ。下の「広告の成果計測」のタグに置き換える）
+   - `vendors/quotes_search_sp.php`（スマホ版）
 4. チャットで最後まで入力し、確認画面に正しく表示されることを確認する
 
 > いきなり本番ページを書き換えず、ページのコピー（例：`quotes_search_simple_test.php`）で先に試すのがおすすめです。
@@ -46,7 +50,7 @@
 チャットで送信すると印が残り、**送信完了画面**でその印があるときだけ成果として数えます。
 同じ申込みが2回数えられることはありません。
 
-1. 送信完了画面のファイルの `</body>` の直前に、次を追加する
+1. 送信完了画面（`vendors/quotes_send_complete.php`）の `</body>` の直前に、次を追加する
    ```html
    <script>
    window.hbChatbotConversion = function () {

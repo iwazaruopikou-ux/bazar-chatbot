@@ -55,7 +55,7 @@
       bot: ['ご訪問ありがとうございます。<div>こちらで<span class="hbc-red">一括資料請求のご案内</span>をいたします！</div>',
         '最初に、ご要望の資料について選択してください！'],
       fields: [
-        { name: 'contact[brochure][]', type: 'checkbox', required: true, options: [
+        { name: 'contact[brochure][]', type: 'checkbox', required: true, unlessFilled: 'contact[brochure_other]', options: [
           'パンフレットや資料　（特長やこだわり、商品等）',
           'ショールーム・見学会・イベント等の情報が欲しい',
           '建築例の資料が見たい　（パンフレット・リーフレット・チラシ等）',
@@ -136,7 +136,7 @@
       fields: [
         { name: 'contact[const_status]', type: 'radio', label: '現在のお住まい', required: true,
           options: ['持ち家（本人名義）', '持ち家（親名義）', 'マンション', '賃貸', 'その他'] },
-        { name: 'contact[house_type]', type: 'text', label: 'その他の場合はご記入ください',
+        { name: 'contact[house_type]', type: 'text', label: '現在のお住まい（その他）', required: true,
           when: { name: 'contact[const_status]', in: ['その他'] } },
         { name: 'contact[build_year]', type: 'radio', label: '築年数', required: true,
           when: { name: 'contact[const_status]', in: ['持ち家（本人名義）', '持ち家（親名義）'] },
@@ -304,6 +304,7 @@
 
   function check(f, v, values) {
     var empty = Array.isArray(v) ? !v.length : !v;
+    if (empty && f.unlessFilled && values[f.unlessFilled]) return '';   // 資料はチェックか「その他」の記入のどちらかでよい
     if (empty) return f.required ? MESSAGES.required : '';
     switch (f.rule) {
       case 'kana': return /^[ァ-ヶー　 ]+$/.test(v) ? '' : MESSAGES.kana;
@@ -317,7 +318,7 @@
         var mobile = ['020', '050', '070', '080', '090'].indexOf(t1) !== -1;
         return (mobile ? all.length === 11 : all.length === 10) ? '' : MESSAGES.tel;
       }
-      case 'email': return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? '' : MESSAGES.email;
+      case 'email': return /^\w+([-+.\w]+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(v) ? '' : MESSAGES.email;   // Vendors.class.php と同じ
       case 'reemail': return v === values['contact[email]'] ? '' : MESSAGES.reemail;
       case 'age': return /^\d{1,3}$/.test(v) && +v > 0 && +v < 130 ? '' : MESSAGES.age;
     }
@@ -726,6 +727,7 @@
       var frame = document.querySelector('iframe[name="' + CONFIG.frameName + '"]');
       var loaded = false;
       if (frame) frame.addEventListener('load', function onLoad() { loaded = true; frame.removeEventListener('load', onLoad); });
+      if (frame) quietFrame(frame);
       var btn = form.querySelector('input[type="image"], input[type="submit"], button[type="submit"]');
       if (btn) btn.click(); else form.submit();
       waitFor(function () { return loaded && formDoc(); }, 15000, function (found) {
@@ -736,6 +738,11 @@
         next();
       });
     });
+  }
+
+  // mgform.js の「入力が完了していません」確認を、チャットによる読み込み直しでは出さない
+  function quietFrame(frame) {
+    try { frame.contentWindow.ignorePageConfirm = true; frame.contentWindow.isChanged = false; } catch (e) { /* 無視 */ }
   }
 
   function optionKey(sel) {
@@ -804,6 +811,7 @@
         srcCity.value = state.area.city;
         var loaded = false;
         frame.addEventListener('load', function onLoad() { loaded = true; frame.removeEventListener('load', onLoad); });
+        quietFrame(frame);
         var b = form.querySelector('input[type="image"], input[type="submit"], button[type="submit"]');
         if (b) b.click(); else form.submit();
         waitFor(function () { return loaded && formDoc(); }, 15000, cb);
