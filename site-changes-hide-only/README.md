@@ -1,17 +1,13 @@
-# 今のチャットボット（ugchatform）を外すだけのファイル
+# 今のチャットボット（ugchatform）を非表示にするだけのファイル
 
-新しいチャットボットは入れずに、ugchatform のタグだけを外したものです。
-サイトの `vendors/` の同じ名前のファイルと置き換えると、チャットボットが表示されなくなります。
-
-元のファイルとの違いは ugchatform のタグを削除したことだけです。
+チャットの表示タグだけを外したものです。ほかは元のファイルのままです。
+サイトの `vendors/` の同じ名前のファイルと置き換えてください。
 
 | ファイル | 変更内容 |
 |---|---|
-| `quotes_search_simple.php` | ugchatform のタグを削除（パソコン版のチャット） |
-| `quotes_search_sp.php` | ugchatform のタグを削除（スマホ版のチャット） |
-| `quotes_send.php` | ugchatform のタグを削除 |
-| `quotes_send_sp.php` | ugchatform のタグを削除 |
-| `quotes_send_complete.php` | ugchatform の成果計測タグを削除 |
-| `quotes_send_complete_sp.php` | ugchatform の成果計測タグを削除（2か所） |
+| `quotes_search_simple.php` | チャットの表示タグを削除（パソコン版） |
+| `quotes_search_sp.php` | チャットの表示タグを削除（スマホ版） |
+| `quotes_send.php` | チャットの表示タグを削除（パソコン版の確認画面など） |
+| `quotes_send_sp.php` | チャットの表示タグを削除（スマホ版の確認画面など） |
 
-新しいチャットボットを入れるときは、`site-changes/vendors/` のファイルで置き換えてください。
+送信完了画面（`quotes_send_complete.php` / `quotes_send_complete_sp.php`）は変更しません。
